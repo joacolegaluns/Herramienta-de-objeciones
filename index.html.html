@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrenador de objeciones</title>
+<style>
+  :root{
+    --paper:#F5F4F0;
+    --card:#FFFFFF;
+    --ink:#1C1B1A;
+    --ink-soft:#5B5850;
+    --border:#DEDCD3;
+    --border-strong:#C7C4B7;
+    --accent:#2F6F4F;
+    --danger:#A23B2E;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    padding:2.5rem 1.25rem 4rem;
+  }
+  main{max-width:640px;margin:0 auto;}
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-weight:400;
+    font-size:30px;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  p.lead{
+    color:var(--ink-soft);
+    font-size:15px;
+    margin:0 0 2rem;
+    max-width:520px;
+  }
+  .setup{display:flex;flex-direction:column;gap:12px;margin-bottom:1.5rem;}
+  .setup-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .setup-label{font-size:14px;color:var(--ink-soft);min-width:70px;}
+  .radio-opt{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;}
+  .radio-opt input:disabled + span, .radio-opt:has(input:disabled){opacity:0.5;}
+  .stats{display:flex;gap:12px;margin-bottom:1.25rem;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1rem;flex:1;}
+  .stat-label{font-size:12px;color:var(--ink-soft);margin:0 0 4px;}
+  .stat-value{font-size:21px;font-weight:600;margin:0;}
+  .question-box{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:1.6rem;
+    min-height:100px;
+    display:flex;
+    align-items:center;
+    margin-bottom:1.25rem;
+  }
+  #question-text{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:18px;
+    line-height:1.65;
+    margin:0;
+  }
+  .answer-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
+    gap:8px;
+    margin-bottom:1.25rem;
+  }
+  button{
+    font-family:inherit;
+    font-size:14px;
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--card);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background 0.12s ease;
+  }
+  button:hover:not(:disabled){background:var(--paper);}
+  button:active:not(:disabled){transform:scale(0.98);}
+  button:disabled{opacity:0.45;cursor:default;}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  #btn-start{border-color:var(--accent);color:var(--accent);font-weight:600;}
+  #feedback{
+    font-size:14px;
+    min-height:44px;
+    margin-bottom:1.25rem;
+    color:var(--ink-soft);
+    padding:0.9rem 1rem;
+    border-radius:8px;
+    background:var(--card);
+    border:1px solid var(--border);
+    display:none;
+  }
+  #feedback.show{display:block;}
+  .ok{color:var(--accent);font-weight:600;}
+  .bad{color:var(--danger);font-weight:600;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;}
+  footer{margin-top:2.5rem;font-size:13px;color:var(--ink-soft);border-top:1px solid var(--border);padding-top:1rem;}
+</style>
+</head>
+<body>
+<main>
+  <h1>Entrenador de objeciones</h1>
+  <p class="lead">La pregunta se revela palabra por palabra, como en una audiencia real. Elegí el fundamento antes de que termine de formularse.</p>
+
+  <div class="setup">
+    <div class="setup-row">
+      <span class="setup-label">Fase</span>
+      <label class="radio-opt"><input type="radio" name="fase" value="directo" checked> Examen directo</label>
+      <label class="radio-opt"><input type="radio" name="fase" value="contra"> Contraexamen</label>
+    </div>
+    <div class="setup-row">
+      <span class="setup-label">Velocidad</span>
+      <label class="radio-opt"><input type="radio" name="vel" value="320"> Lenta</label>
+      <label class="radio-opt"><input type="radio" name="vel" value="230" checked> Normal</label>
+      <label class="radio-opt"><input type="radio" name="vel" value="150"> Rápida</label>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <p class="stat-label">Pregunta</p>
+      <p class="stat-value" id="stat-progress">0 / 0</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Aciertos</p>
+      <p class="stat-value" id="stat-score">0</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Tiempo prom.</p>
+      <p class="stat-value" id="stat-time">-</p>
+    </div>
+  </div>
+
+  <div class="question-box">
+    <p id="question-text">Presioná "Empezar" para iniciar el ejercicio.</p>
+  </div>
+
+  <div class="answer-grid">
+    <button id="btn-sugestiva" disabled>Sugestiva</button>
+    <button id="btn-capciosa" disabled>Capciosa</button>
+    <button id="btn-impertinente" disabled>Impertinente</button>
+  </div>
+
+  <div id="feedback"></div>
+
+  <div class="controls">
+    <button id="btn-start">Empezar</button>
+    <button id="btn-next" style="display:none;">Siguiente pregunta</button>
+    <button id="btn-reset" style="display:none;">Reiniciar</button>
+  </div>
+
+  <footer>Ejercicio de práctica para detección rápida de preguntas objetables (sugestiva, capciosa, impertinente) en examen y contraexamen. Uso interno del equipo de litigación de la Universidad Nacional del Sur.</footer>
+</main>
+
+<script>
+(function(){
+  var bankDirecto = [
+    {t:"¿Usted vio que el señor Pérez sacó un arma de su chaqueta, verdad?", type:"sugestiva", note:"Afirma el hecho central y solo pide confirmación: eso es lo que se busca evitar en el examen directo."},
+    {t:"¿Qué fue lo que usted observó esa noche en el lugar de los hechos?", type:"correcta", note:"Es abierta: deja que el testigo aporte la información sin sugerirla."},
+    {t:"Usted había estado bebiendo antes de presenciar esto, y por eso ahora no recuerda bien lo que pasó, ¿no es cierto?", type:"capciosa", note:"Mezcla dos afirmaciones distintas en una sola pregunta armada para confundir al testigo."},
+    {t:"¿A qué distancia se encontraba usted del vehículo?", type:"correcta", note:"Pregunta puntual y neutra, sin insinuar la respuesta."},
+    {t:"¿A usted le parece que el imputado es una persona peligrosa?", type:"impertinente", note:"Pide una conclusión de valor que excede lo que el testigo puede percibir."},
+    {t:"Después de escuchar el disparo, ¿qué hizo usted?", type:"correcta", note:"Secuencial y abierta, sin adelantar contenido."},
+    {t:"¿No es verdad que usted y la víctima tenían una fuerte discusión por dinero la semana anterior?", type:"sugestiva", note:"La pregunta ya contiene la respuesta esperada; el testigo solo tiene que asentir."},
+    {t:"¿Podría describir el color de la ropa que vestía el acusado?", type:"correcta", note:"Pide un dato concreto sin sugerir cuál es."},
+    {t:"Usted reconoce que estaba oscuro y no vio bien, entonces en realidad no puede asegurar nada de lo que acaba de declarar, ¿cierto?", type:"capciosa", note:"Encadena una premisa con una conclusión propia del abogado."},
+    {t:"En su opinión personal, ¿cree que la policía actuó bien ese día?", type:"impertinente", note:"Excede el rol del testigo: se le pide un juicio de valor sobre terceros."},
+    {t:"¿Qué relación tiene usted con el acusado?", type:"correcta", note:"Pregunta neutra sobre un hecho verificable."},
+    {t:"¿Es cierto que usted odia al acusado desde hace años?", type:"sugestiva", note:"Da por sentado un estado emocional y solo busca confirmación."},
+    {t:"¿Cuánto tiempo pasó entre el grito y la llegada de la policía?", type:"correcta", note:"Pide un dato temporal concreto sin inducir la respuesta."},
+    {t:"Usted es una persona que suele mentir, así que su testimonio de hoy tampoco merece crédito, ¿no es así?", type:"impertinente", note:"Ataca el carácter del testigo en lugar de indagar sobre hechos del caso."},
+    {t:"¿Qué escuchó exactamente antes de ver correr al hombre?", type:"correcta", note:"Abierta y centrada en la percepción directa del testigo."},
+    {t:"¿No es cierto que el arma encontrada era del mismo calibre que la usada por el acusado en un hecho anterior?", type:"impertinente", note:"Introduce un hecho ajeno a la teoría del caso, con fuerte potencial de prejuicio."},
+    {t:"¿Recuerda si la puerta estaba abierta o cerrada?", type:"correcta", note:"Pregunta puntual sin sugerir la respuesta."},
+    {t:"Usted trabajó para la familia de la víctima durante años, así que naturalmente quiere que ganen el juicio, ¿verdad?", type:"sugestiva", note:"Encadena un hecho con una conclusión favorable al litigante."}
+  ];
+
+  var bankContra = [
+    {t:"¿Usted usa lentes?", type:"correcta", note:"Sugestiva de un solo punto: permitida y deseable en contraexamen, mantiene al testigo controlado."},
+    {t:"¿Esos lentes son recetados para ver de lejos?", type:"correcta", note:"Sigue el mismo punto (visión) sin saltar a otro tema todavía."},
+    {t:"¿No es cierto que no llevaba puestos sus lentes recetados para ver de lejos y por eso en realidad no pudo ver con claridad lo que dice haber visto?", type:"capciosa", note:"Viola la regla de un solo punto por pregunta: mezcla un hecho (no llevaba lentes) con una conclusión (no pudo ver bien) en la misma pregunta, generando confusión sobre qué está confirmando el testigo."},
+    {t:"¿Cómo se explica que haya visto tan bien el hecho sin sus anteojos?", type:"impertinente", note:"Le pide una explicación al testigo: esto es exactamente lo que hay que evitar en contraexamen, porque le abre la puerta a justificarse con algo que el litigante no controla."},
+    {t:"¿Estaba usted a más de una cuadra del lugar del hecho?", type:"correcta", note:"Pregunta cerrada sobre un solo dato de distancia."},
+    {t:"¿El hecho ocurrió en la esquina de San Martín y calle 1?", type:"correcta", note:"Sigue puntualizando el mismo tema (distancia/ubicación)."},
+    {t:"¿No es verdad que usted estaba tan lejos que ni siquiera pudo reconocer bien al agresor, así que en realidad todo su testimonio de hoy es una fantasía?", type:"impertinente", note:"Salta de un dato concreto a una conclusión descalificadora total del testimonio: es argumentativa y anticipa en la pregunta lo que debería reservarse para el alegato de clausura."},
+    {t:"¿El hecho ocurrió pasadas las nueve de la noche?", type:"correcta", note:"Dato puntual sobre condiciones externas de percepción."},
+    {t:"¿Había más de quince personas circulando por la cuadra a esa hora?", type:"correcta", note:"Sigue el mismo punto temático (visibilidad) sin mezclar otro."},
+    {t:"¿Es cierto que había poca luz y mucha gente, por lo que usted en realidad se confundió de persona y quiere quedar bien con la fiscalía?", type:"capciosa", note:"Combina dos ideas distintas (confusión por visibilidad e interés personal con la fiscalía) en una sola pregunta, lo que impide saber cuál de las dos está confirmando el testigo."},
+    {t:"¿Usted trabaja actualmente para la familia de la víctima?", type:"correcta", note:"Pregunta puntual sobre un hecho verificable de interés del testigo."},
+    {t:"¿Ese trabajo comenzó después de ocurridos los hechos?", type:"correcta", note:"Sigue el mismo punto temático (interés/vínculo), sin combinarlo con otro."},
+    {t:"¿No es cierto que usted miente para proteger a su empleador y por eso vino a declarar lo que declaró?", type:"impertinente", note:"Es una acusación directa de mentira sin anclarla a un hecho puntual: eso es una conclusión que corresponde al alegato final, no a una pregunta de contraexamen."},
+    {t:"¿Usted declaró ante la policía el mismo día del hecho?", type:"correcta", note:"Pregunta puntual que prepara el contraste con la declaración previa."},
+    {t:"¿En esa declaración dijo que el agresor vestía una campera azul?", type:"correcta", note:"Sigue puntualizando un solo dato antes de confrontar con lo dicho hoy."},
+    {t:"Hoy declaró que la campera era negra, entonces usted contradice su propia declaración anterior y probablemente esté inventando todo, ¿no es así?", type:"capciosa", note:"Mezcla la confrontación puntual (azul vs. negra) con una conclusión general sobre la fiabilidad total del testigo: son dos ideas en una sola pregunta."},
+    {t:"¿Por qué cree usted que no pudo ver con claridad esa noche?", type:"correcta", note:"No hay fundamento legal para objetarla, pero es un error táctico grave: es una pregunta abierta que le cede el control al testigo en pleno contraexamen. Conviene reemplazarla por preguntas cerradas de un solo punto."},
+    {t:"Cuénteme nuevamente todo lo que vio esa noche, con sus palabras.", type:"correcta", note:"Tampoco es objetable, pero repetir el examen directo en el contraexamen solo sirve para reforzar y hacer más creíble la versión de la contraparte."}
+  ];
+
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp;}return a;}
+
+  var order = [];
+  var idx = -1;
+  var score = 0;
+  var times = [];
+  var wordTimer = null;
+  var words = [];
+  var wpos = 0;
+  var startTime = 0;
+  var resolved = false;
+  var speed = 230;
+
+  var elText = document.getElementById('question-text');
+  var elProgress = document.getElementById('stat-progress');
+  var elScore = document.getElementById('stat-score');
+  var elTime = document.getElementById('stat-time');
+  var elFeedback = document.getElementById('feedback');
+  var btnStart = document.getElementById('btn-start');
+  var btnNext = document.getElementById('btn-next');
+  var btnReset = document.getElementById('btn-reset');
+  var btnS = document.getElementById('btn-sugestiva');
+  var btnC = document.getElementById('btn-capciosa');
+  var btnI = document.getElementById('btn-impertinente');
+  var faseInputs = document.querySelectorAll('input[name="fase"]');
+
+  function currentPhase(){
+    for (var i=0;i<faseInputs.length;i++){ if (faseInputs[i].checked) return faseInputs[i].value; }
+    return 'directo';
+  }
+  function currentSpeed(){
+    var r = document.querySelectorAll('input[name="vel"]');
+    for (var i=0;i<r.length;i++){ if (r[i].checked) return parseInt(r[i].value,10); }
+    return 230;
+  }
+  function setFaseLocked(locked){
+    for (var i=0;i<faseInputs.length;i++){ faseInputs[i].disabled = locked; }
+  }
+
+  function updateStats(){
+    elProgress.textContent = (idx+1) + ' / ' + order.length;
+    elScore.textContent = score;
+    if (times.length){
+      var avg = Math.round(times.reduce(function(a,b){return a+b;},0)/times.length);
+      elTime.textContent = avg + ' ms';
+    } else {
+      elTime.textContent = '-';
+    }
+  }
+
+  function setButtonsEnabled(enabled){
+    btnS.disabled = !enabled;
+    btnC.disabled = !enabled;
+    btnI.disabled = !enabled;
+  }
+
+  function startRound(){
+    var bank = currentPhase() === 'contra' ? bankContra : bankDirecto;
+    order = shuffle(bank.slice());
+    idx = -1;
+    score = 0;
+    times = [];
+    setFaseLocked(true);
+    startQuestion();
+  }
+
+  function startQuestion(){
+    if (idx >= order.length - 1){
+      finishRound();
+      return;
+    }
+    idx++;
+    resolved = false;
+    var q = order[idx];
+    words = q.t.split(' ');
+    wpos = 0;
+    elText.textContent = '';
+    elFeedback.classList.remove('show');
+    elFeedback.innerHTML = '';
+    btnNext.style.display = 'none';
+    setButtonsEnabled(true);
+    updateStats();
+    speed = currentSpeed();
+    startTime = performance.now();
+    revealNext();
+  }
+
+  function revealNext(){
+    if (wpos < words.length){
+      elText.textContent = (elText.textContent ? elText.textContent + ' ' : '') + words[wpos];
+      wpos++;
+      wordTimer = setTimeout(revealNext, speed + Math.random()*60);
+    } else {
+      if (!resolved){
+        resolveAnswer(null, true);
+      }
+    }
+  }
+
+  function resolveAnswer(chosenType, timedOut){
+    if (resolved) return;
+    resolved = true;
+    clearTimeout(wordTimer);
+    setButtonsEnabled(false);
+    var q = order[idx];
+    var trueType = q.type;
+    var reaction = Math.round(performance.now() - startTime);
+
+    elFeedback.classList.add('show');
+
+    if (trueType === 'correcta'){
+      if (chosenType === null){
+        score++;
+        elFeedback.innerHTML = '<span class="ok">Correcto: no había fundamento para objetar.</span> ' + q.note;
+      } else {
+        elFeedback.innerHTML = '<span class="bad">Objeción innecesaria.</span> ' + q.note;
+      }
+    } else {
+      if (timedOut){
+        elFeedback.innerHTML = '<span class="bad">Tarde: la respuesta ya habría llegado al tribunal.</span> Era ' + trueType + '. ' + q.note;
+      } else if (chosenType === trueType){
+        score++;
+        times.push(reaction);
+        elFeedback.innerHTML = '<span class="ok">Objeción correcta en ' + reaction + ' ms.</span> ' + q.note;
+      } else {
+        elFeedback.innerHTML = '<span class="bad">Objetaste a tiempo pero con el fundamento equivocado.</span> Era ' + trueType + '. ' + q.note;
+      }
+    }
+    updateStats();
+    btnNext.style.display = 'inline-block';
+    btnNext.textContent = (idx >= order.length - 1) ? 'Ver resultado final' : 'Siguiente pregunta';
+  }
+
+  function finishRound(){
+    elText.textContent = 'Ronda terminada.';
+    elFeedback.classList.add('show');
+    elFeedback.innerHTML = 'Resultado: ' + score + ' de ' + order.length + ' correctas.';
+    btnNext.style.display = 'none';
+    btnReset.style.display = 'inline-block';
+    setButtonsEnabled(false);
+  }
+
+  btnStart.addEventListener('click', function(){
+    btnStart.style.display = 'none';
+    btnReset.style.display = 'inline-block';
+    startRound();
+  });
+  btnNext.addEventListener('click', function(){
+    if (idx >= order.length - 1){
+      finishRound();
+    } else {
+      startQuestion();
+    }
+  });
+  btnReset.addEventListener('click', function(){
+    setFaseLocked(false);
+    idx = -1;
+    score = 0;
+    times = [];
+    order = [];
+    elText.textContent = 'Presioná "Empezar" para iniciar el ejercicio.';
+    elFeedback.classList.remove('show');
+    elFeedback.innerHTML = '';
+    btnStart.style.display = 'inline-block';
+    btnNext.style.display = 'none';
+    btnReset.style.display = 'none';
+    setButtonsEnabled(false);
+    updateStats();
+  });
+  btnS.addEventListener('click', function(){ resolveAnswer('sugestiva', false); });
+  btnC.addEventListener('click', function(){ resolveAnswer('capciosa', false); });
+  btnI.addEventListener('click', function(){ resolveAnswer('impertinente', false); });
+
+  updateStats();
+})();
+</script>
+</body>
+</html>
