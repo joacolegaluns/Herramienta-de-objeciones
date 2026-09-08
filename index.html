@@ -296,7 +296,9 @@
   .btn.is-correct,.btn.is-correct:disabled{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);opacity:1;}
   .btn.is-wrong,.btn.is-wrong:disabled{background:var(--danger-soft);border-color:var(--danger);color:var(--danger);opacity:1;}
 
-  .answer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+  .answer-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+  .answer-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+  .answer-row.row-2{grid-template-columns:repeat(2,minmax(0,1fr));}
   .answer-grid .btn{white-space:nowrap;}
   .controls{display:flex;gap:8px;flex-wrap:wrap;}
 
@@ -408,9 +410,15 @@
 
   <div class="actions">
     <div class="answer-grid">
-      <button id="btn-sugestiva" class="btn" type="button" disabled>Sugestiva</button>
-      <button id="btn-capciosa" class="btn" type="button" disabled>Capciosa</button>
-      <button id="btn-impertinente" class="btn" type="button" disabled>Impertinente</button>
+      <div class="answer-row">
+        <button id="btn-sugestiva" class="btn" type="button" disabled>Sugestiva</button>
+        <button id="btn-capciosa" class="btn" type="button" disabled>Capciosa</button>
+        <button id="btn-impertinente" class="btn" type="button" disabled>Impertinente</button>
+      </div>
+      <div class="answer-row row-2">
+        <button id="btn-compuesta" class="btn" type="button" disabled>Compuesta</button>
+        <button id="btn-intimidatoria" class="btn" type="button" disabled>Intimidatoria</button>
+      </div>
     </div>
     <div class="controls">
       <button id="btn-start" class="btn btn-primary" type="button">Empezar</button>
@@ -419,7 +427,7 @@
     </div>
   </div>
 
-  <footer>Ejercicio de práctica para detección rápida de preguntas objetables (sugestiva, capciosa, impertinente) en examen y contraexamen. Uso interno del equipo de litigación de la Universidad Nacional del Sur.</footer>
+  <footer>Ejercicio de práctica para detección rápida de preguntas objetables en examen y contraexamen. Uso interno del equipo de litigación de la Universidad Nacional del Sur.</footer>
 </main>
 
 <script>
@@ -429,22 +437,41 @@
   var bankDirecto = [
     {t:"¿Usted vio que el señor Pérez sacó un arma de su chaqueta, verdad?", type:"sugestiva", note:"Afirma el hecho central y solo pide confirmación: eso es lo que se busca evitar en el examen directo."},
     {t:"¿Qué fue lo que usted observó esa noche en el lugar de los hechos?", type:"correcta", note:"Es abierta: deja que el testigo aporte la información sin sugerirla."},
-    {t:"Usted había estado bebiendo antes de presenciar esto, y por eso ahora no recuerda bien lo que pasó, ¿no es cierto?", type:"capciosa", note:"Mezcla dos afirmaciones distintas en una sola pregunta armada para confundir al testigo."},
     {t:"¿A qué distancia se encontraba usted del vehículo?", type:"correcta", note:"Pregunta puntual y neutra, sin insinuar la respuesta."},
     {t:"¿A usted le parece que el imputado es una persona peligrosa?", type:"impertinente", note:"Pide una conclusión de valor que excede lo que el testigo puede percibir."},
     {t:"Después de escuchar el disparo, ¿qué hizo usted?", type:"correcta", note:"Secuencial y abierta, sin adelantar contenido."},
     {t:"¿No es verdad que usted y la víctima tenían una fuerte discusión por dinero la semana anterior?", type:"sugestiva", note:"La pregunta ya contiene la respuesta esperada; el testigo solo tiene que asentir."},
     {t:"¿Podría describir el color de la ropa que vestía el acusado?", type:"correcta", note:"Pide un dato concreto sin sugerir cuál es."},
-    {t:"Usted reconoce que estaba oscuro y no vio bien, entonces en realidad no puede asegurar nada de lo que acaba de declarar, ¿cierto?", type:"capciosa", note:"Encadena una premisa con una conclusión propia del abogado."},
+    {t:"Usted reconoce que estaba oscuro y no vio lo que tenía que ver al momento en que se produjo el hecho que venimos tratando de dilucidar desde que este juicio oral se puso en curso, entonces ¿en qué situación se encontraba usted realmente?", type:"capciosa", note:"Es capciosa porque está formulada de tal manera que puede confundir al testigo."},
     {t:"En su opinión personal, ¿cree que la policía actuó bien ese día?", type:"impertinente", note:"Excede el rol del testigo: se le pide un juicio de valor sobre terceros."},
     {t:"¿Qué relación tiene usted con el acusado?", type:"correcta", note:"Pregunta neutra sobre un hecho verificable."},
     {t:"¿Es cierto que usted odia al acusado desde hace años?", type:"sugestiva", note:"Da por sentado un estado emocional y solo busca confirmación."},
     {t:"¿Cuánto tiempo pasó entre el grito y la llegada de la policía?", type:"correcta", note:"Pide un dato temporal concreto sin inducir la respuesta."},
     {t:"Usted es una persona que suele mentir, así que su testimonio de hoy tampoco merece crédito, ¿no es así?", type:"impertinente", note:"Ataca el carácter del testigo en lugar de indagar sobre hechos del caso."},
     {t:"¿Qué escuchó exactamente antes de ver correr al hombre?", type:"correcta", note:"Abierta y centrada en la percepción directa del testigo."},
-    {t:"¿No es cierto que el arma encontrada era del mismo calibre que la usada por el acusado en un hecho anterior?", type:"impertinente", note:"Introduce un hecho ajeno a la teoría del caso, con fuerte potencial de prejuicio."},
+    {t:"¿No es cierto que el acusado fue visto consumiendo estupefacientes?", type:"sugestiva", note:"Es sugestiva porque en la pregunta instala la respuesta que desea obtener."},
     {t:"¿Recuerda si la puerta estaba abierta o cerrada?", type:"correcta", note:"Pregunta puntual sin sugerir la respuesta."},
-    {t:"Usted trabajó para la familia de la víctima durante años, así que naturalmente quiere que ganen el juicio, ¿verdad?", type:"sugestiva", note:"Encadena un hecho con una conclusión favorable al litigante."}
+    {t:"Usted trabajó para la familia de la víctima durante años, así que naturalmente quiere que ganen el juicio, ¿verdad?", type:"sugestiva", note:"Encadena un hecho con una conclusión favorable al litigante."},
+    {t:"¿Cuál cree que fue el motivo del accidente?", type:"impertinente", note:"Le pide al testigo una conclusión causal que escapa del ámbito de lo que puede percibir un testigo lego."},
+    {t:"¿Qué piensa que pasó por la cabeza de Andrés al momento de cruzar la calle?", type:"impertinente", note:"Exige especular sobre el estado mental de un tercero, algo que ningún testigo puede conocer con certeza."},
+    {t:"¿En qué podría estar pensando Gabriel cuando pasó con su bicicleta?", type:"impertinente", note:"Igual que en el caso anterior, pide adivinar los pensamientos de otra persona en lugar de relatar hechos percibidos."},
+    {t:"¿Quién considera que tuvo la responsabilidad de lo que pasó?", type:"impertinente", note:"Solicita una conclusión sobre responsabilidad, cuestión de derecho reservada al tribunal y no al testigo."},
+    {t:"¿Te parece que el auto venía a una velocidad muy por encima de lo reglamentario?", type:"impertinente", note:"Pide una opinión o juicio de valor sobre el cumplimiento normativo, en lugar de un dato percibido directamente."},
+    {t:"Al estar junto a sus amigos esa noche en el bar, ¿con qué asiduidad él consumía alcohol?", type:"capciosa", note:"Es imprecisa porque no define a cuál de todos los amigos del grupo alude con \"él\", y además presupone una conducta habitual no acreditada."},
+    {t:"¿Cómo se sentía luego de beber?", type:"capciosa", note:"Es ambigua porque no distingue si alude al estado físico o al anímico, lo que confunde el contexto sobre el que debe responder el testigo."},
+    {t:"¿Usted vio que el auto cruzó la intersección a gran velocidad?", type:"sugestiva", note:"Da por sentada la velocidad del auto y solo pide confirmación, en vez de preguntar abiertamente qué observó."},
+    {t:"¿Es verdad que el semáforo vehicular sobre la calle marcaba luz roja cuando el auto embistió a la víctima?", type:"sugestiva", note:"Afirma el estado del semáforo dentro de la propia pregunta, dejando al testigo solo la opción de asentir."},
+    {t:"¿Usted presenció que el conductor tomó al menos cuatro vasos de cerveza durante la cena en el bar?", type:"sugestiva", note:"Fija de antemano la cantidad de bebida consumida, encerrando la respuesta esperada dentro de la propia pregunta."},
+    {t:"¿Es cierto que el conductor se retiró del local mostrando dificultades visibles para caminar debido al alcohol?", type:"sugestiva", note:"Presupone tanto el estado de ebriedad como su causa, sustituyendo el relato del testigo por la versión de quien interroga."},
+    {t:"¿Usted lo notó balbuceante y claramente ebrio cuando hablaron por teléfono minutos antes del impacto?", type:"sugestiva", note:"Describe la condición del conductor como un hecho ya dado y solo requiere que el testigo lo confirme."},
+    {t:"¿Las huellas de frenado encontradas en el asfalto demuestran que el conductor iba a más de 70 km/h?", type:"sugestiva", note:"Convierte una interpretación pericial en una afirmación cerrada que el testigo simplemente debe validar."},
+    {t:"¿Usted constató en la filmación que el vehículo nunca disminuyó la marcha antes de la esquina?", type:"sugestiva", note:"Anticipa la conclusión, que no frenó, dentro de la pregunta, en lugar de indagar qué se observa realmente en la filmación."},
+    {t:"¿Escuchó que el conductor aceleró el motor en lugar de frenar al acercarse al cruce de calles?", type:"sugestiva", note:"Encierra dos hechos favorables a la teoría del caso, que aceleró y que no frenó, dentro de una sola pregunta cerrada."},
+    {t:"¿Qué hizo usted cuando escuchó el impacto, a qué distancia se encontraba parado y hacia dónde corrió para auxiliar a la víctima?", type:"compuesta", note:"Pide tres respuestas distintas, la reacción, la distancia y el rumbo, en una sola pregunta, lo que rompe la fluidez del relato espontáneo."},
+    {t:"¿Cómo estaba el estado del clima esa noche, cómo era la iluminación en esa esquina y qué visibilidad había sobre la senda peatonal?", type:"compuesta", note:"Reúne tres circunstancias ambientales distintas en una sola formulación, dificultando que el tribunal siga con claridad el testimonio."},
+    {t:"¿Dónde se reunieron a cenar, qué cantidad de personas integraban la mesa y qué consumió el conductor durante la reunión?", type:"compuesta", note:"Acumula tres datos independientes, el lugar, la cantidad de comensales y el consumo, en lugar de preguntarlos uno por uno."},
+    {t:"¿A qué hora llegó usted a la parada de colectivos, en qué dirección miraba y qué observó sobre la marcha del vehículo?", type:"compuesta", note:"Mezcla tres preguntas, el horario, la dirección de la mirada y lo observado, en una sola intervención, confundiendo el relato."},
+    {t:"¿Qué medidas preliminares tomó al llegar al lugar del siniestro, con quién se entrevistó primero y qué rastros levantó del asfalto?", type:"compuesta", note:"Exige tres respuestas sobre las medidas tomadas, la primera entrevista y los rastros recogidos, atentando contra la precisión del relato."}
   ];
 
   var bankContra = [
@@ -452,20 +479,29 @@
     {t:"¿Esos lentes son recetados para ver de lejos?", type:"correcta", note:"Sigue el mismo punto (visión) sin saltar a otro tema todavía."},
     {t:"¿No es cierto que no llevaba puestos sus lentes recetados para ver de lejos y por eso en realidad no pudo ver con claridad lo que dice haber visto?", type:"capciosa", note:"Viola la regla de un solo punto por pregunta: mezcla un hecho (no llevaba lentes) con una conclusión (no pudo ver bien) en la misma pregunta, generando confusión sobre qué está confirmando el testigo."},
     {t:"¿Cómo se explica que haya visto tan bien el hecho sin sus anteojos?", type:"impertinente", note:"Le pide una explicación al testigo: esto es exactamente lo que hay que evitar en contraexamen, porque le abre la puerta a justificarse con algo que el litigante no controla."},
-    {t:"¿Estaba usted a más de una cuadra del lugar del hecho?", type:"correcta", note:"Pregunta cerrada sobre un solo dato de distancia."},
-    {t:"¿El hecho ocurrió en la esquina de San Martín y calle 1?", type:"correcta", note:"Sigue puntualizando el mismo tema (distancia/ubicación)."},
+    {t:"Usted estaba a más de una cuadra del lugar del hecho, ¿cierto?", type:"correcta", note:"Pregunta cerrada sobre un solo dato de distancia."},
+    {t:"El hecho ocurrió en la esquina de San Martín y Calle 1, ¿no es así?", type:"correcta", note:"Sigue puntualizando el mismo tema (distancia/ubicación)."},
     {t:"¿No es verdad que usted estaba tan lejos que ni siquiera pudo reconocer bien al agresor, así que en realidad todo su testimonio de hoy es una fantasía?", type:"impertinente", note:"Salta de un dato concreto a una conclusión descalificadora total del testimonio: es argumentativa y anticipa en la pregunta lo que debería reservarse para el alegato de clausura."},
     {t:"¿El hecho ocurrió pasadas las nueve de la noche?", type:"correcta", note:"Dato puntual sobre condiciones externas de percepción."},
     {t:"¿Había más de quince personas circulando por la cuadra a esa hora?", type:"correcta", note:"Sigue el mismo punto temático (visibilidad) sin mezclar otro."},
     {t:"¿Es cierto que había poca luz y mucha gente, por lo que usted en realidad se confundió de persona y quiere quedar bien con la fiscalía?", type:"capciosa", note:"Combina dos ideas distintas (confusión por visibilidad e interés personal con la fiscalía) en una sola pregunta, lo que impide saber cuál de las dos está confirmando el testigo."},
     {t:"¿Usted trabaja actualmente para la familia de la víctima?", type:"correcta", note:"Pregunta puntual sobre un hecho verificable de interés del testigo."},
-    {t:"¿Ese trabajo comenzó después de ocurridos los hechos?", type:"correcta", note:"Sigue el mismo punto temático (interés/vínculo), sin combinarlo con otro."},
+    {t:"El trabajo comenzó después de que ocurran los hechos, ¿verdad?", type:"correcta", note:"Sigue el mismo punto temático (interés/vínculo), sin combinarlo con otro."},
     {t:"¿No es cierto que usted miente para proteger a su empleador y por eso vino a declarar lo que declaró?", type:"impertinente", note:"Es una acusación directa de mentira sin anclarla a un hecho puntual: eso es una conclusión que corresponde al alegato final, no a una pregunta de contraexamen."},
     {t:"¿Usted declaró ante la policía el mismo día del hecho?", type:"correcta", note:"Pregunta puntual que prepara el contraste con la declaración previa."},
     {t:"¿En esa declaración dijo que el agresor vestía una campera azul?", type:"correcta", note:"Sigue puntualizando un solo dato antes de confrontar con lo dicho hoy."},
     {t:"Hoy declaró que la campera era negra, entonces usted contradice su propia declaración anterior y probablemente esté inventando todo, ¿no es así?", type:"capciosa", note:"Mezcla la confrontación puntual (azul vs. negra) con una conclusión general sobre la fiabilidad total del testigo: son dos ideas en una sola pregunta."},
     {t:"¿Por qué cree usted que no pudo ver con claridad esa noche?", type:"correcta", note:"No hay fundamento legal para objetarla, pero es un error táctico grave: es una pregunta abierta que le cede el control al testigo en pleno contraexamen. Conviene reemplazarla por preguntas cerradas de un solo punto."},
-    {t:"Cuénteme nuevamente todo lo que vio esa noche, con sus palabras.", type:"correcta", note:"Tampoco es objetable, pero repetir el examen directo en el contraexamen solo sirve para reforzar y hacer más creíble la versión de la contraparte."}
+    {t:"¿Usted es consciente de que si sigue mintiendo para encubrir a su amigo se va a ir detenido por falso testimonio de esta misma sala?", type:"intimidatoria", note:"Amenaza con una detención inmediata para intimidar al testigo, en lugar de confrontar su relato con evidencia."},
+    {t:"¿Sabe la cantidad de años de cárcel efectiva que le esperan si el tribunal comprueba que perjuró bajo juramento?", type:"intimidatoria", note:"Utiliza el temor a una pena de prisión como forma de presión, sustituyendo la confrontación probatoria por la coacción."},
+    {t:"¿Va a seguir sosteniendo ese relato falso frente al tribunal o prefiere decir la verdad antes de que ordene su inmediata detención?", type:"intimidatoria", note:"Plantea una falsa disyuntiva bajo amenaza de detención inmediata, hostigando al testigo en vez de impugnar su testimonio con datos."},
+    {t:"¿Es consciente de las consecuencias penales directas que va a sufrir su familia si usted sale esposado de este juicio por mentir?", type:"intimidatoria", note:"Extiende la amenaza a la familia del testigo, una coacción ilegítima ajena a la confrontación del relato con la prueba."},
+    {t:"¿Usted cree que el juez no se da cuenta de que está cometiendo falso testimonio y que va a terminar tras las rejas hoy mismo?", type:"intimidatoria", note:"Da por sentado el delito y amenaza con la cárcel el mismo día, buscando amedrentar en lugar de confrontar el testimonio."},
+    {t:"¿Es verdad que usted escuchó el chirrido de neumáticos, vio el impacto contra la bicicleta y notó que el conductor no frenó?", type:"compuesta", note:"Reúne tres hechos distintos, el chirrido, el impacto y la falta de frenado, en una sola pregunta, sin permitir distinguir a cuál responde el testigo."},
+    {t:"¿Es cierto que el semáforo estaba en verde, que la víctima cruzaba por la senda y que no llevaba casco puesto?", type:"compuesta", note:"Combina tres afirmaciones independientes sobre el semáforo, el cruce y el casco, forzando una única respuesta para todas."},
+    {t:"¿Es correcto que usted salió del bar a las 23:30 horas, que vio al conductor subir al auto y que lo notó visiblemente alcoholizado?", type:"compuesta", note:"Encadena tres circunstancias separadas, el horario, el ingreso al auto y la ebriedad, que deberían indagarse una por una."},
+    {t:"¿Usted vio doblar al auto por la avenida, acelerar de golpe y embestir al peatón antes de llegar a la ochava?", type:"compuesta", note:"Junta tres acciones del vehículo en una sola pregunta, dejando dudas sobre a cuál de ellas asiente el testigo con un sí o un no."},
+    {t:"¿Es verdad que el conductor bajó del vehículo, intentó levantar la bicicleta y realizó una llamada telefónica desesperado?", type:"compuesta", note:"Agrupa tres conductas distintas del conductor, impidiendo saber con precisión cuál de ellas confirma o niega el testigo."}
   ];
 
   var GRACE_MS = 350;            /* margen tras la última letra antes de dar por "tarde" */
@@ -504,10 +540,13 @@
   var answerBtns = {
     sugestiva: $('btn-sugestiva'),
     capciosa: $('btn-capciosa'),
-    impertinente: $('btn-impertinente')
+    impertinente: $('btn-impertinente'),
+    compuesta: $('btn-compuesta'),
+    intimidatoria: $('btn-intimidatoria')
   };
   var faseInputs = document.querySelectorAll('input[name="fase"]');
   var velInputs = document.querySelectorAll('input[name="vel"]');
+  var QUESTIONS_PER_ROUND = 20;
 
   function checkedValue(list, fallback){
     for (var i=0;i<list.length;i++){ if (list[i].checked) return list[i].value; }
@@ -649,6 +688,7 @@
   function startRound(){
     var bank = currentPhase() === 'contra' ? bankContra : bankDirecto;
     order = shuffle(bank.slice());
+    if (order.length > QUESTIONS_PER_ROUND) order = order.slice(0, QUESTIONS_PER_ROUND);
     idx = -1;
     score = 0;
     times = [];
@@ -763,7 +803,7 @@
   });
   btnReset.addEventListener('click', resetAll);
   (function(){
-    var types = ['sugestiva','capciosa','impertinente'];
+    var types = ['sugestiva','capciosa','impertinente','compuesta','intimidatoria'];
     for (var i=0;i<types.length;i++){
       (function(type){
         answerBtns[type].addEventListener('click', function(){ resolveAnswer(type, false); });
